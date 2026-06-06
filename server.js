@@ -25,9 +25,21 @@ app.get("/", (req, res) => {
   res.send("MaaTarang Backend Running 🚀");
 });
 app.post("/upload", upload.single("image"), (req, res) => {
-  res.json({
-    imageUrl: req.file.path,
-  });
+  try {
+    console.log("Uploaded File:", req.file);
+
+    res.json({
+      success: true,
+      imageUrl: req.file.path,
+    });
+  } catch (err) {
+    console.log("Upload Error:", err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
 /* Get All Products */
