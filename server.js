@@ -54,6 +54,48 @@ app.get("/products", (req, res) => {
   res.json(products);
 });
 
+app.post("/products", (req, res) => {
+  const { name, price, category, image } = req.body;
+
+  const newProduct = {
+    id: products.length + 1,
+    name,
+    price,
+    category,
+    image,
+  };
+
+  products.push(newProduct);
+
+  res.status(201).json({
+    message: "Product added successfully",
+    product: newProduct,
+  });
+});
+
+app.delete("/products/:id", (req, res) => {
+  const productId = parseInt(req.params.id);
+
+  const index = products.findIndex(
+    (p) => p.id === productId
+  );
+
+  if (index === -1) {
+    return res.status(404).json({
+      message: "Product not found",
+    });
+  }
+
+  const deletedProduct = products[index];
+
+  products.splice(index, 1);
+
+  res.json({
+    message: "Product deleted successfully",
+    product: deletedProduct,
+  });
+});
+
 // Get Single Product by ID
 app.get("/product/:id", (req, res) => {
   const productId = parseInt(req.params.id);
