@@ -1,116 +1,110 @@
 import express from "express";
 import cors from "cors";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import Product from "./models/Product.js";
+
+dotenv.config();
 
 const app = express();
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected ✅"))
+  .catch((err) => console.log("MongoDB Error:", err));
 
 app.use(cors());
 app.use(express.json());
 app.use("/images", express.static("images"));
 
-const products = [
-  {
-    id: 1,
-    name: "Floral Design",
-    price: 1349,
-    category: "Embroidery",
-    image: "/images/floral.png"
-  },
-  {
-    id: 2,
-    name: "Peacock Feather Embroidered Kurta",
-    price: 9999,
-    category: "Premium",
-    image: "/images/kurta.png"
-  },
-{
-  id: 3,
-  name: "Designer Floral Kurti",
-  price: 1799,
-  category: "Women's Wear",
-  image: "/images/girls-kurti-1.jpeg"
-},
-{
-  id: 4,
-  name: "Elegant Peach Kurti Set",
-  price: 2299,
-  category: "Women's Wear",
-  image: "/images/girls-kurti-2.jpeg"
-},
-{
-  id: 5,
-  name: "Ralph Lauren Men's Premium Shirt",
-  price: 5499,
-  category: "Men's Wear",
-  image: "/images/ralph-lauren-men.png"
-}
-];
-// Home Route
+/* Home Route */
 app.get("/", (req, res) => {
   res.send("MaaTarang Backend Running 🚀");
 });
 
-// Get All Products
-app.get("/products", (req, res) => {
-  res.json(products);
-});
-
-app.post("/products", (req, res) => {
-  const { name, price, category, image } = req.body;
-
-  const newProduct = {
-    id: products.length + 1,
-    name,
-    price,
-    category,
-    image,
-  };
-
-  products.push(newProduct);
-
-  res.status(201).json({
-    message: "Product added successfully",
-    product: newProduct,
-  });
-});
-
-app.delete("/products/:id", (req, res) => {
-  const productId = parseInt(req.params.id);
-
-  const index = products.findIndex(
-    (p) => p.id === productId
-  );
-
-  if (index === -1) {
-    return res.status(404).json({
-      message: "Product not found",
+/* Get All Products */
+app.get("/products", async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch products",
+      error: err.message,
     });
   }
-
-  const deletedProduct = products[index];
-
-  products.splice(index, 1);
-
-  res.json({
-    message: "Product deleted successfully",
-    product: deletedProduct,
-  });
 });
 
-// Get Single Product by ID
-app.get("/product/:id", (req, res) => {
-  const productId = parseInt(req.params.id);
+/* Add Product */
+app.post("/products", async (req, res) => {
+  try {
+    const { name, price, category, image } = req.body;
 
-  const product = products.find(
-    (p) => p.id === productId
-  );
+    const product = new Product({
+      name,
+      price,
+      category,
+      image,
+    });
 
-  if (!product) {
-    return res.status(404).json({
-      message: "Product not found"
+    await product.save();
+
+    res.status(201).json({
+      message: "Product added successfully",
+      product,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to add product",
+      error: err.message,
     });
   }
+});
 
-  res.json(product);
+/* Delete Product */
+app.delete("/products/:id", async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(
+      req.params.id
+    );
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found",
+      });
+    }
+
+    res.json({
+      message: "Product deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to delete product",
+      error: err.message,
+    });
+  }
+});
+
+/* Get Single Product */
+app.get("/product/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(
+      req.params.id
+    );
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found",
+      });
+    }
+
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch product",
+      error: err.message,
+    });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
