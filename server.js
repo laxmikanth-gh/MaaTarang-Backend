@@ -1,3 +1,5 @@
+import multer from "multer";
+import { storage } from "./config/cloudinary.js";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -16,10 +18,16 @@ mongoose
 app.use(cors());
 app.use(express.json());
 app.use("/images", express.static("images"));
+const upload = multer({ storage });
 
 /* Home Route */
 app.get("/", (req, res) => {
   res.send("MaaTarang Backend Running 🚀");
+});
+app.post("/upload", upload.single("image"), (req, res) => {
+  res.json({
+    imageUrl: req.file.path,
+  });
 });
 
 /* Get All Products */
