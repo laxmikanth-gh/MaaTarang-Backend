@@ -105,6 +105,35 @@ app.delete("/products/:id", async (req, res) => {
   }
 });
 
+/* Update Product */
+app.put("/products/:id", async (req, res) => {
+  try {
+    const { name, price, category } = req.body;
+
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { name, price, category },
+      { new: true }
+    );
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found",
+      });
+    }
+
+    res.json({
+      message: "Product updated successfully",
+      product,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to update product",
+      error: err.message,
+    });
+  }
+});
+
 /* Get Single Product */
 app.get("/product/:id", async (req, res) => {
   try {
