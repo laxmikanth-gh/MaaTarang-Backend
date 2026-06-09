@@ -15,6 +15,9 @@ dotenv.config();
 
 const app = express();
 
+/* ── Trust Render proxy ── */
+app.set("trust proxy", 1);
+
 /* ── Security middleware ── */
 app.use(helmet());
 app.use(
@@ -30,14 +33,13 @@ const generalLimiter = rateLimit({
   max: 100,
   message: { message: "Too many requests, please try again later" },
 });
-const generalLimiter = rateLimit({
+const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1000,
-  message: { message: "Too many requests, please try again later" },
+  max: 10, // Stricter limit for auth
+  message: { message: "Too many login attempts, please try again later" },
 });
 
-// Apply only to products
-app.use("/products", generalLimiter);
+app.use(generalLimiter);
 app.use(express.json());
 app.use("/images", express.static("images"));
 
