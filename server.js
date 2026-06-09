@@ -30,13 +30,14 @@ const generalLimiter = rateLimit({
   max: 100,
   message: { message: "Too many requests, please try again later" },
 });
-const authLimiter = rateLimit({
+const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // Stricter limit for auth
-  message: { message: "Too many login attempts, please try again later" },
+  max: 1000,
+  message: { message: "Too many requests, please try again later" },
 });
 
-app.use(generalLimiter);
+// Apply only to products
+app.use("/products", generalLimiter);
 app.use(express.json());
 app.use("/images", express.static("images"));
 
